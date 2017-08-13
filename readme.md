@@ -1,5 +1,8 @@
-# SlotModuleMk2
+# TAISASlot 
+coming soon...
 
-# パチスロ作るやつです
-maskとsoundはしくじると怖いんで枝斬ります  
-https://pekko1215.github.io/slotmodulemk2/
+#### 今わかってること
+- 配列はひぐらしを流用
+- CZはボーナス後、通常時、特殊１枚役から突入
+- CZはビタ押しでRT突入
+- RTは20Gで延命可能
