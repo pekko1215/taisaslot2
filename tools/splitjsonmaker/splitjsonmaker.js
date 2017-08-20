@@ -1,6 +1,10 @@
 var Jimp = require("jimp");
 var fs = require('fs')
 
+if(process.argv.length<4) {
+    console.log("node splitjsonmaker.js imgfile splitcount")
+    return;
+}
 Jimp.read(process.argv[2], function(err, lenna) {
         if (err) throw err;
         var width = lenna.bitmap.width;

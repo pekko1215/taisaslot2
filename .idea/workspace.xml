@@ -2,12 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="58a89d72-1c30-4281-9c3d-bc8325510063" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/java/ReelInfo.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/java/main.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/sound/いいもの.wav" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/readme.md" afterPath="$PROJECT_DIR$/readme.md" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
+    <ignored path="$PROJECT_DIR$/.idea/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -23,8 +26,8 @@
             <file leaf-file-name="yakudata.js" pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/data/yakudata.js">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="425">
-                    <caret line="27" column="6" lean-forward="false" selection-start-line="27" selection-start-column="6" selection-end-line="27" selection-end-column="6" />
+                  <state relative-caret-position="255">
+                    <caret line="17" column="19" lean-forward="true" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
                     <folding>
                       <element signature="e#0#46#0" expanded="false" />
                     </folding>
@@ -43,8 +46,8 @@
             <file leaf-file-name="control.js" pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/data/control.js">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="442">
-                    <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+                  <state relative-caret-position="289">
+                    <caret line="17" column="17" lean-forward="true" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="17" />
                     <folding />
                   </state>
                 </provider>
@@ -61,8 +64,8 @@
             <file leaf-file-name="lotdata.js" pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/data/lotdata.js">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="17">
-                    <caret line="4" column="15" lean-forward="false" selection-start-line="4" selection-start-column="15" selection-end-line="4" selection-end-column="15" />
+                  <state relative-caret-position="221">
+                    <caret line="16" column="23" lean-forward="true" selection-start-line="16" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
                     <folding />
                   </state>
                 </provider>
@@ -79,11 +82,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="SlotModuleMK2.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SlotModuleMK2.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/originjs/SlotModuleMK2.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1173">
-              <caret line="69" column="8" lean-forward="false" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
+            <state relative-caret-position="297">
+              <caret line="127" column="13" lean-forward="true" selection-start-line="127" selection-start-column="13" selection-end-line="127" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -123,12 +126,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="readme.md" pinned="false" current-in-tab="true">
+      <file leaf-file-name="readme.md" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/readme.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
               <first_editor relative-caret-position="119">
-                <caret line="7" column="7" lean-forward="false" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
+                <caret line="7" column="13" lean-forward="true" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
                 <folding />
               </first_editor>
               <second_editor />
@@ -169,8 +172,8 @@
       <file leaf-file-name="reelControlData.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/originjs/reelControlData.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1003">
-              <caret line="59" column="58" lean-forward="false" selection-start-line="59" selection-start-column="58" selection-end-line="59" selection-end-column="58" />
+            <state relative-caret-position="238">
+              <caret line="14" column="9" lean-forward="false" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -219,13 +222,13 @@
         <option value="$PROJECT_DIR$/data/flashdata.js" />
         <option value="$PROJECT_DIR$/originjs/Lottery.js" />
         <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/originjs/SlotModuleMK2.js" />
         <option value="$PROJECT_DIR$/data/control.js" />
         <option value="$PROJECT_DIR$/data/lotdata.js" />
         <option value="$PROJECT_DIR$/originjs/Sounder.js" />
         <option value="$PROJECT_DIR$/data/yakudata.js" />
         <option value="$PROJECT_DIR$/originjs/appmain.js" />
         <option value="$PROJECT_DIR$/readme.md" />
+        <option value="$PROJECT_DIR$/originjs/SlotModuleMK2.js" />
       </list>
     </option>
   </component>
@@ -239,7 +242,7 @@
     <handled-path value="$PROJECT_DIR$/tools/splitjsonmaker/node_modules" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-7" />
+    <option name="x" value="793" />
     <option name="width" value="814" />
     <option name="height" value="867" />
   </component>
@@ -334,7 +337,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../slotmodulemk2" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="nodejs_interpreter_path" value="C:/Program Files/nodejs/node" />
     <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
@@ -460,7 +463,7 @@
       <workItem from="1502199559168" duration="19897000" />
       <workItem from="1502536400869" duration="2694000" />
       <workItem from="1502599598339" duration="1720000" />
-      <workItem from="1502631135253" duration="1436000" />
+      <workItem from="1502631135253" duration="3411000" />
     </task>
     <task id="LOCAL-00001" summary="子役入賞の実装(。-`ω-)">
       <created>1500128554265</created>
@@ -588,11 +591,18 @@
       <option name="project" value="LOCAL" />
       <updated>1502206330975</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="ボーナスも&#10;               　ペイもできて&#10;               　　あと曲だけ&#10;                      ヒデホヒ心の俳句">
+      <created>1502632583897</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1502632583897</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="121644000" />
+    <option name="totallyTimeSpent" value="123619000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -604,7 +614,8 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="814" height="867" extended-state="0" />
+    <frame x="793" y="0" width="814" height="867" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2556391" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -676,7 +687,8 @@
     <MESSAGE value="ボーナスの&#10;　持ち越し意外と&#10;　　簡単です&#10;       ヒデホヒ心の俳句" />
     <MESSAGE value="ボーナスは&#10;  全て自分で&#10;  　補います&#10;       ヒデホヒ心の俳句" />
     <MESSAGE value="ボーナスも&#10;　ペイもできて&#10;　　あと曲だけ&#10;       ヒデホヒ心の俳句" />
-    <option name="LAST_COMMIT_MESSAGE" value="ボーナスも&#10;　ペイもできて&#10;　　あと曲だけ&#10;       ヒデホヒ心の俳句" />
+    <MESSAGE value="ボーナスも&#10;               　ペイもできて&#10;               　　あと曲だけ&#10;                      ヒデホヒ心の俳句" />
+    <option name="LAST_COMMIT_MESSAGE" value="ボーナスも&#10;               　ペイもできて&#10;               　　あと曲だけ&#10;                      ヒデホヒ心の俳句" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -971,14 +983,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/img/reelchip (1).json" />
-    <entry file="file://$PROJECT_DIR$/originjs/reelControlData.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1003">
-          <caret line="59" column="58" lean-forward="false" selection-start-line="59" selection-start-column="58" selection-end-line="59" selection-end-column="58" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/paneldata.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
@@ -995,14 +999,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/originjs/SlotModuleMK2.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1173">
-          <caret line="69" column="8" lean-forward="false" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/originjs/Lottery.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="561">
@@ -1015,32 +1011,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1428">
           <caret line="84" column="18" lean-forward="false" selection-start-line="84" selection-start-column="18" selection-end-line="84" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data/yakudata.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="27" column="6" lean-forward="false" selection-start-line="27" selection-start-column="6" selection-end-line="27" selection-end-column="6" />
-          <folding>
-            <element signature="e#0#46#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data/lotdata.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="4" column="15" lean-forward="false" selection-start-line="4" selection-start-column="15" selection-end-line="4" selection-end-column="15" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data/control.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1073,11 +1043,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/data/lotdata.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="16" column="23" lean-forward="true" selection-start-line="16" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/control.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="17" column="17" lean-forward="true" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data/yakudata.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="19" lean-forward="true" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
+          <folding>
+            <element signature="e#0#46#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/readme.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="119">
-            <caret line="7" column="7" lean-forward="false" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
+            <caret line="7" column="13" lean-forward="true" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
             <folding />
           </first_editor>
           <second_editor />
@@ -1086,6 +1082,22 @@
       <provider editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" column="25" lean-forward="false" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/originjs/reelControlData.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="9" lean-forward="false" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/originjs/SlotModuleMK2.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="127" column="13" lean-forward="true" selection-start-line="127" selection-start-column="13" selection-end-line="127" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
