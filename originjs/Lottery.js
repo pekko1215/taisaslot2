@@ -40,9 +40,15 @@ function Lotter(){
                     name:null
                 }
             }
+            if(this._pipe){
+                return this._pipe(ret);
+            }
             return ret;
         }
         this.add(arguments[0])
+        this.pipe = function(p){
+            this._pipe = p;
+        }
     }else{
         //通常呼び出し
         return (new arguments.callee(arguments[0])).lot();

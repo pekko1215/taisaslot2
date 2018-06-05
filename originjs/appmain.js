@@ -1,397 +1,915 @@
-var reelControl = null;
-
-var xhr = new XMLHttpRequest();
-xhr.open('GET', 'data/Sample.dat');
-xhr.responseType = 'arraybuffer';
-controlData = {};
-xhr.onload = function () {
-    var uUint8array = new Uint8Array(this.response)
-    var data_view = new DataView(uUint8array.buffer);
-    var pos = 0;
-    if (data_view.getUint32(pos, false) != 0x52435432) {
-        alert("制御データの読み込みに失敗しました");
-        return;
-    }
-    pos += 4;
-    controlData.controlCount = data_view.getUint8(pos++, false)
-    controlData.reelChipCount = data_view.getUint8(pos++, false);
-    controlData.reelLength = data_view.getUint8(pos++, false);
-    controlData.yakuCount = data_view.getUint8(pos++, false);
-    controlData.maxLine = data_view.getUint8(pos++, false);
-    controlData.reelArray = [
-        [],
-        [],
-        []
-    ]
-    controlData.reelArray = controlData.reelArray.map(function () {
-        var array = [];
-        for (var i = 0; i < controlData.reelLength; i++) {
-            array.push(data_view.getUint8(pos++, false))
-        }
-        return array
-    });
-    controlData.yakuList = Array(controlData.yakuCount).fill(0).map(function () {
-        return [data_view.getUint16(pos, false), pos += 2][0]
-    })
-
-    controlData.betLine = Array(controlData.maxLine).fill(0).map(function () {
-        var array = [];
-        for (i = 0; i < 4; i++) {
-            array.push(data_view.getUint8(pos++, false))
-        }
-        return array
-    })
-
-    controlData.slideTable = [
-        [],
-        [],
-        []
-    ];
-    controlData.tableSize = Math.floor((controlData.reelLength + 1) / 2);
-
-    controlData.slideTableSize = [];
-
-    for (var i = 0; i < 3; i++) {
-        controlData.slideTableSize[i] = [data_view.getUint16(pos, false) * controlData.tableSize, pos += 2][0]
-    }
-
-    controlData.tableNum23IndexSize = [0, 0, 0]
-    for (var i = 0; i < 3; i++) {
-        controlData.tableNum23IndexSize[i] = [data_view.getUint16(pos, false) + 1, pos += 2][0]
-    }
-    controlData.tableNumSize = data_view.getUint8(pos++, false);
-    controlData.tableNum23NumSize = data_view.getUint8(pos++, false);
-
-    for (var i = 0; i < 3; i++) {
-        controlData.slideTable[i] = [];
-        for (var k = 0; k < controlData.slideTableSize[i]; k++) {
-            controlData.slideTable[i].push(data_view.getUint8(pos++, false))
-        }
-    }
-
-    controlData.tableNum1Size = controlData.controlCount * 3 * controlData.tableNumSize;
-    controlData.tableNum1 = [];
-
-    for (var i = 0; i < controlData.tableNum1Size; i++) {
-        controlData.tableNum1.push(data_view.getUint8(pos++, false))
-    }
-    controlData.tableNum23Index = new Array(3);
-    for (var i = 0; i < 3; i++) {
-        controlData.tableNum23Index[i] = [0];
-        for (var k = 1; k < controlData.tableNum23IndexSize[i]; k++) {
-            controlData.tableNum23Index[i].push([data_view.getUint16(pos, false), pos += 2][0])
-        }
-    }
-    controlData.tableNum23 = [];
-    for (var i = 0; i < 3; i++) {
-        controlData.tableNum23[i] = [];
-        var tableNum23Size = controlData.tableNum23Index[i][controlData.tableNum23Index[i].length - 1] * controlData.tableNumSize;
-        for (var k = 0; k < tableNum23Size; k++) {
-            controlData.tableNum23[i].push(data_view.getUint8(pos++, false))
-        }
-    }
-    controlData.tableNum23NumIndex = [];
-    controlData.tableNum23NumIndex.push(0)
-    for (var i = 1; i < controlData.controlCount * 6 + 1; i++) {
-        controlData.tableNum23NumIndex[i] = [data_view.getUint16(pos, false), pos += 2][0]
-    }
-    controlData.tableNum23Num = [];
-    for (var i = 0; i < controlData.tableNum23NumIndex[controlData.controlCount * 6] * controlData.tableNum23NumSize; i++) {
-        controlData.tableNum23Num.push(data_view.getUint8(pos++, false))
-    }
-    reelControl = new reelControlData(controlData)
-    window.slotmodule = new SlotModuleMk2();
-    $(main)
-
-}
-xhr.send();
+controlRerquest("data/control.smr", main)
 
 function main() {
-    slotmodule.on("allreelstop", function (e) {
-        var $ele = $("#nabi");
+    window.scrollTo(0, 0);
+    var sbig;
+    var notplaypaysound = false;
+    var hyperzone = 0;
+    var hypergame = 0;
 
+    var rtinfo = {
+        mode:0,
+        count:-1
+    };
+    window.rtinfo = rtinfo
 
+    slotmodule.on("allreelstop", function(e) {
         if (e.hits != 0) {
-            if (e.hityaku.length == 0)
-                return
+            if (e.hityaku.length == 0) return
             var matrix = e.hityaku[0].matrix;
             var count = 0;
-            slotmodule.once("bet", function () {
+            slotmodule.once("bet", function() {
                 slotmodule.clearFlashReservation()
             })
-
-            slotmodule.setFlash(null, 0, function (e) {
-                slotmodule.setFlash(flashdata.default, 20)
-                slotmodule.setFlash(replaceMatrix(flashdata.default, matrix, colordata.LINE_F, null), 20, arguments.callee)
+            // if (e.hityaku[0].name.indexOf("Dummy") != -1 || e.hityaku[0].name.indexOf("1枚役") != -1 || e.hityaku[0].name == "チェリー") {
+            //     notplaypaysound = true;
+            // } else {
+            //     notplaypaysound = false;
+            //     if (e.hityaku[0].name === "JACIN") {
+            //         slotmodule.setFlash(replaceMatrix(flashdata.syoto, matrix, colordata.LINE_F, null), 1000, function() {
+            //             slotmodule.clearFlashReservation()
+            //         });
+            //     } else {
+            //         slotmodule.setFlash(null, 0, function(e) {
+            //             slotmodule.setFlash(flashdata.default, 20)
+            //             slotmodule.setFlash(replaceMatrix(flashdata.default, matrix, colordata.LINE_F, null), 20, arguments.callee)
+            //         })
+            //     }
+            // }
+        }
+        if (e.hits == 0 && jacflag && gamemode == "big") {
+            slotmodule.setFlash(flashdata.syoto)
+            slotmodule.once('bet', function() {
+                slotmodule.clearFlashReservation()
             })
         }
-        if(gamemode=="big"){
+        if (gamemode == "big") {
             bonusdata.bonusgame--;
+            changeBonusSeg()
         }
-
-        if(gamemode=="jac"||gamemode=="reg"){
+        if (gamemode == "jac" || gamemode == "reg") {
             bonusdata.jacgamecount--;
+            changeBonusSeg()
         }
-
         replayflag = false;
-
-        e.hityaku.forEach(function(d){
-            switch(gamemode){
+        var nexter = true;
+        e.hityaku.forEach(function(d) {
+            var matrix = d.matrix;
+            switch (gamemode) {
                 case 'normal':
-                    switch(d.name){
-                        case "青7":
-                        case "赤7":
-                            setGamemode('big');
-                            bonusdata = {
-                                bonusgame:8,
-                                jacincount:3,
-                            }
+                    switch (d.name) {
+                        case "7":
+                        case "月":
+                        case "BAR":
                             bonusflag = "none";
-                            isSBIG = true;
+                            slotmodule.freeze();
+                            sounder.playSound("bonuspay", false, () => {
+                                sounder.playSound("moonstart", false, () => {
+                                    if (hyperzone) {
+                                        sbig = true;
+                                        hyperzone = 3;
+                                    } else {
+                                        hyperzone = !rand(3) ? 3 : 0;
+                                        if(hyperzone){sbig = true}
+                                    }
+                                    if (hyperzone == 3) {
+                                        hypergame = 50;
+                                    }
+                                    var BGM = "NBIG"
+                                    if (sbig) {
+                                        BGM = "SBIG"
+                                    }
+                                    sounder.playSound(["moonfailed", "moonsuccess"][sbig ? 1 : 0], false, () => {
+                                        sounder.playSound(BGM, true)
+                                        bonusdata = {
+                                            bonusget: 301,
+                                            geted: 0
+                                        }
+                                        setGamemode('big');
+                                        changeBonusSeg()
+                                        slotmodule.resume();
+                                    })
+                                })
+                            })
                             break;
-                        case "REG":
-                            setGamemode('reg');
-                            bonusdata = {
-                                jacgamecount:8,
-                                jacgetcount:8
+                        case "オレンジ":
+                            sounder.playSound("cherrypay");
+                            var counter = 20;
+                            var randmaker = () => {
+                                var ret = {};
+                                ret.back = Array(3).fill(Array(3).fill(colordata.DEFAULT_B));
+                                ret.front = [0, 0, 0].map(() => {
+                                    return [0, 0, 0].map(() => {
+                                        return rand(2) ? colordata.LINE_F : colordata.DEFAULT_F
+                                    })
+                                })
+                                return ret;
                             }
-                            bonusflag = "none";
+                            slotmodule.setFlash(randmaker(), 4, function() {
+                                counter--
+                                if (counter) {
+                                    slotmodule.setFlash(randmaker(), 4, arguments.callee)
+                                } else {
+                                    slotmodule.resume()
+                                }
+                            })
+                            replayflag = true;
                             break;
                         case "リプレイ":
                             replayflag = true;
                             break;
-                    }
-                    if(d.name.indexOf("BIG")!=-1||d.name == "BAR"){
-                        setGamemode('big');
-                        bonusdata = {
-                            bonusgame:8,
-                            jacincount:1,
-                        }
-                        sounder.playSound("big1",true);
+                        case '目押しリプレイ1':
+                            if(rtinfo.mode==0||rtinfo.mode==1){
+                                rtinfo.mode = 2;
+                                rtinfo.count = 30;
+                            }
+                            replayflag = true;
+                        case '目押しリプレイ2':
+                            if(rtinfo.mode==0||rtinfo.mode==1){
+                                rtinfo.mode = 2;
+                                rtinfo.count = 50;
+                            }
+                            replayflag = true;
+                        case '目押しリプレイ3':
+                            if(rtinfo.mode==0||rtinfo.mode==1){
+                                rtinfo.mode = 2;
+                                rtinfo.count = 150;
+                            }
+                            replayflag = true;
+                        break;
+                        case '転落リプレイ':
+                            if(rtinfo.mode==0){
+                                rtinfo.mode = 3;
+                                rtinfo.count = 500;
+                            }
+                            replayflag = true;
                     }
                     break;
                 case 'big':
-                    if(d.name=="リプレイ"){
+                    if (d.name == "JACIN") {
                         setGamemode('jac');
                         bonusdata.jacincount--;
-                        bonusdata.jacgamecount = 8;
-                        bonusdata.jacgetcount = 8;
-
+                        bonusdata.jacgamecount = 4;
+                        bonusdata.jacgetcount = 4;
+                        jacflag = false
                     }
+                    changeBonusSeg()
                     break;
                 case 'reg':
                 case 'jac':
+                    if (d.name === "JACGAME") {
+                        slotmodule.clearFlashReservation()
+                        var matrix = [
+                            [1, 0, 0],
+                            [0, 1, 0],
+                            [0, 0, 1]
+                        ];
+                        if (slotmodule.getReelPos(0) == 13) {
+                            matrix = matrix.map((arr) => {
+                                arr[1] = 0;
+                                arr[2] = 0;
+                                return arr;
+                            })
+                        }
+                        slotmodule.setFlash(null, 0, function(e) {
+                            slotmodule.setFlash(flashdata.default, 20)
+                            slotmodule.setFlash(replaceMatrix(flashdata.default, matrix, colordata.LINE_F, null), 20, arguments.callee)
+                        })
+                    }
                     bonusdata.jacgetcount--;
+                    changeBonusSeg()
             }
         })
-        if(gamemode=="big"&&bonusdata.bonusgame==0){
+        if ((gamemode == "reg" || gamemode == 'jac' || gamemode == "big")&&bonusdata.bonusget <= 0) {
             setGamemode('normal');
-            sounder.stopSound("big1")
-            isCT = CTBIG;
-        }
-        if(gamemode=="reg"||gamemode=="jac"){
-            if(bonusdata.jacgamecount==0||bonusdata.jacgetcount==0){
-                if(!bonusdata.jacincount){
-                    setGamemode('normal');
-                    sounder.stopSound("big1")
-                }else{
+            sounder.stopSound("bgm")
+            segments.effectseg.reset();
+        }else{
+            if ((gamemode == "reg" || gamemode == 'jac')) {
+                if (bonusdata.jacgamecount == 0 || bonusflag.jacgetcount == 0) {
                     setGamemode('big');
                 }
             }
         }
-        e.stopend()
-    })
-
-
-
-    slotmodule.on("leveron", function () {
-        if (slotmodule.getPlayControlData().controlCode == 8) {
-            slotmodule.setFlash(flashdata.redtest, 30, function () {
-            })
+        if (nexter) {
+            e.stopend()
         }
     })
-
-    slotmodule.on("bet", function (e) {
+    slotmodule.on("bonusend", () => {
+        sounder.stopSound("bgm")
+        setGamemode("normal")
+    });
+    slotmodule.on("payend", function() {
+        if (gamemode != "normal") {
+            if (bonusdata.geted >= bonusdata.bonusget) {
+                slotmodule.emit("bonusend");
+                setGamemode("normal")
+            }
+        }
+    })
+    slotmodule.on("leveron", function() {})
+    slotmodule.on("bet", function(e) {
         sounder.playSound("3bet")
-        if ("coin" in e){
-            coin -= e.coin;
-
+        if ("coin" in e) {
+            (function(e) {
+                var thisf = arguments.callee;
+                if (e.coin > 0) {
+                    coin--;
+                    e.coin--;
+                    incoin++;
+                    changeCredit(-1);
+                    setTimeout(function() {
+                        thisf(e)
+                    }, 70)
+                } else {
+                    e.betend();
+                }
+            })(e)
+        }
+        if (gamemode == "jac") {
+            segments.payseg.setSegments(bonusdata.jacgamecount)
+        } else {
+            segments.payseg.reset();
         }
     })
-
-    slotmodule.on("pay", function (e) {
+    slotmodule.on("pay", function(e) {
         var pays = e.hityaku.pay;
         var arg = arguments;
+        if (gamemode != "normal") {
+            changeBonusSeg();
+        }
+        if (!("paycount" in e)) {
+            e.paycount = 0
+            switch (gamemode) {
+                case 'normal':
+                    switch (pays) {
+                        case 4:
+                            sounder.playSound("bonuspay");
+                            break;
+                        case 10:
+                            sounder.playSound("pay");
+                            break;
+                    }
+                    break;
+                case 'big':
+                case 'jac':
+                    switch (pays) {
+                        case 2:
+                        case 3:
+                            sounder.playSound("cherrypay");
+                            break;
+                        case 15:
+                            sounder.playSound("pay15");
+                            break;
+                    }
+                    break;
+            }
+        }
         if (pays == 0) {
-            if (replayflag) {
-                slotmodule.emit("bet", e.playingStatus);
-                sounder.playSound("replay", false, e.replay);
+            if (replayflag && replayflag && e.hityaku.hityaku[0].name != "チェリー") {
+                sounder.playSound("replay", false, function() {
+                    e.replay();
+                    slotmodule.emit("bet", e.playingStatus);
+                });
             } else {
-                e.payend()
+                if (replayflag) {
+                    e.replay();
+                    slotmodule.clearFlashReservation()
+                } else {
+                    e.payend()
+                }
             }
         } else {
             e.hityaku.pay--;
             coin++;
-
-            sounder.playSound("pay", false, function () {
+            e.paycount++;
+            outcoin++;
+            if (gamemode != "normal") {
+                bonusdata.geted++;
+            }
+            changeCredit(1);
+            segments.payseg.setSegments(e.paycount)
+            setTimeout(function() {
                 arg.callee(e)
-
-            })
+            }, 100)
         }
     })
-    slotmodule.on("lot", function (e) {
+    var jacflag = false;
+    slotmodule.on("lot", function(e) {
         var ret = -1;
         switch (gamemode) {
             case "normal":
                 var lot = normalLotter.lot().name
+                lot = window.power || lot;
+                window.power = undefined
+                if(rtinfo.count == 0){
+                    rtinfo.mode = 0;
+                    rtinfo.count = -1
+                }
+                if (rtinfo.count > 0) {
+                    rtinfo.count--;
+                }
                 switch (lot) {
                     case "リプレイ":
                         ret = lot
                         break;
+                    case "オレンジ":
                     case "ベル":
-                    case "スイカ":
                     case "チェリー":
                         ret = lot;
-                        if(isCT){
-                            ret = "CT"
-                        }
                         break;
                     case "BIG":
-                        ret = control.code.indexOf("BIG1") + rand(3);
-                        CTBIG = (rand(2)==0);
-                        if(isCT){
-                            if(CTBIG){
-                                ret = "BIGCT2";
-                            }else{
-                                ret = "BIGCT2";
+                        if (bonusflag == "none") {
+                            bonusflag = "BIG"+(rand(4,1));
+                            switch (rand(8)) {
+                                case 0:
+                                case 1:
+                                case 2:
+                                case 3:
+                                case 4:
+                                case 5:
+                                    ret = "オレンジ"
+                                    break;
+                                case 6:
+                                    ret = "1枚役"+rand(2,1);
+                                    break;
+                                case 7:
+                                    ret = bonusflag
+                                    break;
                             }
-                        }
-                        break;
-                    case "REG":
-                        ret = "REG";
-                        if(!isCT){
-                            ret = "はずれ"
+                        } else {
+                            ret = bonusflag;
                         }
                         break;
                     default:
                         ret = "はずれ"
-                        if(isCT){
-                            ret = "CT"
+                        if (bonusflag != "none") {
+                            ret = bonusflag
+                        }else{
+                            switch(rtinfo.mode){
+                                case 0:
+                                    if(!rand(4)){
+                                        ret = '突入リプレイ'
+                                    }
+                                    if(!rand(4)){
+                                        ret = '転落リプレイ'
+                                    }
+                                break
+                                case 1:
+                                    if(!rand(8)){
+                                        ret = '突入リプレイ'
+                                    }else{
+                                        ret = 'リプレイ'
+                                    }
+                                break
+                                case 2:
+                                    ret = 'リプレイ'
+                                break
+                            }
                         }
                 }
-
                 break;
             case "big":
-                var lot = bigLotter.lot().name;
-                switch(lot){
-                    case null:
-                        if(isSBIG){
-                            ret = "SBIG子役"
-                        }else{
-                            ret = "NBIG子役"
-                        }
-                        break;
+                var lot = bigLotter.lot().name
+                lot = window.power || lot;
+                window.power = undefined
+                switch (lot) {
                     case "JACIN":
-                        ret = "JACIN";
-                        if(!isSBIG){
-                            ret = "はずれ"
+                        jacflag = true;
+                        if (jacflag == true) {}
+                    default:
+                        if (jacflag) {
+                            ret = 'JAC' + rand(3, 1)
+                        } else {
+                            ret = 'BIG3枚' + rand(3, 1)
                         }
-                        break;
-
                 }
                 break;
             case "reg":
             case "jac":
-                var lot = jacLotter.lot().name;
-                ret = lot;
+                ret = "JAC15枚" + rand(3, 1);
+                if (rand(3)) {
+                    jacflag = true
+                }
                 break;
         }
+        effect(ret);
+        console.log(ret)
         return ret;
     })
-
-    slotmodule.on("reelstop", function () {
+    slotmodule.on("reelstop", function() {
         sounder.playSound("stop")
     })
-
-    $("#audioFire").click(function () {
-        sounder.playSound("stop")
+    $("#saveimg").click(function() {
+        SaveDataToImage();
     })
-
-    slotmodule.on("reelstart", function () {
-        sounder.playSound("start")
+    $("#cleardata").click(function() {
+        if (confirm("データをリセットします。よろしいですか？")) {
+            ClearData();
+        }
     })
-
-    setInterval(function () {
-        $("#nabi").html("差枚数:"+coin+"<br>" +
-                        JSON.stringify(bonusdata))
-    }, 10)
+    $("#loadimg").click(function() {
+        $("#dummyfiler").click();
+    })
+    $("#dummyfiler").change(function(e) {
+        var file = this.files[0];
+        var image = new Image();
+        var reader = new FileReader();
+        reader.onload = function(evt) {
+            image.onload = function() {
+                var canvas = $("<canvas></canvas>")
+                canvas[0].width = image.width;
+                canvas[0].height = image.height;
+                var ctx = canvas[0].getContext('2d');
+                ctx.drawImage(image, 0, 0)
+                var imageData = ctx.getImageData(0, 0, canvas[0].width, canvas[0].height)
+                var loadeddata = SlotCodeOutputer.load(imageData.data);
+                if (loadeddata) {
+                    parseSaveData(loadeddata)
+                    alert("読み込みに成功しました")
+                } else {
+                    alert("データファイルの読み取りに失敗しました")
+                }
+            }
+            image.src = evt.target.result;
+        }
+        reader.onerror = function(e) {
+            alert("error " + e.target.error.code + " \n\niPhone iOS8 Permissions Error.");
+        }
+        reader.readAsDataURL(file)
+    })
+    slotmodule.on("reelstart", function() {
+        if (okure) {
+            setTimeout(function() {
+                sounder.playSound("start")
+            }, 100)
+        } else {
+            sounder.playSound("start")
+        }
+        okure = false;
+    })
+    var okure = false;
     var sounder = new Sounder();
-
-    sounder.addFile("sound/stop.wav", "stop")
-    sounder.addFile("sound/start.wav", "start");
-    sounder.addFile("sound/bet.wav", "3bet");
-    sounder.addFile("sound/pay.wav", "pay");
-    sounder.addFile("sound/replay.wav", "replay");
-    sounder.addFile("sound/big1.wav","big1");
-
-
-    sounder.loadFile(function () {
-        window.sounder = sounder
-        console.log(sounder)
+    sounder.addFile("sound/stop.wav", "stop").addTag("se");
+    sounder.addFile("sound/start.wav", "start").addTag("se").setVolume(0.5);
+    sounder.addFile("sound/bet.wav", "3bet").addTag("se").setVolume(0.5);
+    sounder.addFile("sound/yokoku_low.mp3", "yokoku_low").addTag("se");
+    sounder.addFile("sound/yokoku_high.mp3", "yokoku_high").addTag("se");
+    sounder.addFile("sound/pay.wav", "pay").addTag("se");
+    sounder.addFile("sound/replay.wav", "replay").addTag("se");
+    sounder.addFile("sound/NormalBIG.wav", "NBIG").addTag("bgm")
+    sounder.addFile("sound/VBIG.wav", "VBIG").addTag("bgm")
+    sounder.addFile("sound/big15.wav", "pay15")
+    sounder.addFile("sound/SBIG.mp3", "SBIG").addTag("bgm");
+    sounder.addFile("sound/JACNABI.wav", "jacnabi").addTag("se");
+    sounder.addFile("sound/big1hit.wav", "big1hit").addTag("se");
+    sounder.addFile("sound/moonsuccess.mp3", "moonsuccess").addTag("se");
+    sounder.addFile("sound/moonfailed.mp3", "moonfailed").addTag("se");
+    sounder.addFile("sound/bell2.wav", "bell2").addTag("se");
+    sounder.addFile("sound/nabi.wav", "nabi").addTag("voice").addTag("se");
+    sounder.addFile("sound/reg.wav", "reg").addTag("bgm");
+    sounder.addFile("sound/big2.mp3", "big2").addTag("bgm");
+    sounder.addFile("sound/moonstart.mp3", "moonstart").addTag("se");
+    sounder.addFile("sound/bigselect.mp3", "bigselect").addTag("se")
+    sounder.addFile("sound/syoto.mp3", "syoto").addTag("se")
+    sounder.addFile("sound/cherrypay.wav", "cherrypay").addTag("se");
+    sounder.addFile("sound/bonuspay.wav", "bonuspay").addTag("voice").addTag("se");
+    sounder.addFile("sound/bpay.wav", "bpay").addTag("se").setVolume(0.5);
+    sounder.setVolume("se", 0.2)
+    sounder.setVolume("bgm", 0.2)
+    $(window).click(function sounderEvent(){
+        if(window.sounder){return}
+        sounder.loadFile(function() {
+            window.sounder = sounder
+            console.log(sounder)
+        })
     })
-
     var normalLotter = new Lotter(lotdata.normal);
     var bigLotter = new Lotter(lotdata.big);
     var jacLotter = new Lotter(lotdata.jac);
-
-
     var gamemode = "normal";
     var bonusflag = "none"
     var coin = 0;
-
     var bonusdata;
     var replayflag;
-
     var isCT = false;
     var CTBIG = false;
     var isSBIG;
+    var ctdata = {};
+    var regstart;
+    var afterNotice;
+    var bonusSelectIndex;
+    var ctNoticed;
+    var playcount = 0;
+    var allplaycount = 0;
+    var incoin = 0;
+    var outcoin = 0;
+    var bonuscounter = {
+        count: {},
+        history: []
+    };
+    slotmodule.on("leveron", function() {
+        if (gamemode == "normal") {
+            playcount++;
+            allplaycount++;
+        } else {
+            if (playcount != 0) {
+                bonuscounter.history.push({
+                    bonus: gamemode,
+                    game: playcount
+                })
+                playcount = 0;
+            }
+        }
+        changeCredit(0)
+    })
 
-    var setGamemode = function(mode){
-        switch (mode){
+    function stringifySaveData() {
+        return {
+            coin: coin,
+            playcontroldata: slotmodule.getPlayControlData(),
+            bonuscounter: bonuscounter,
+            incoin: incoin,
+            outcoin: outcoin,
+            playcount: playcount,
+            allplaycount: allplaycount,
+            name: "ゲッター7",
+            id: "getter7"
+        }
+    }
+
+    function parseSaveData(data) {
+        coin = data.coin;
+        // slotmodule.setPlayControlData(data.playcontroldata)
+        bonuscounter = data.bonuscounter
+        incoin = data.incoin;
+        outcoin = data.outcoin;
+        playcount = data.playcount;
+        allplaycount = data.allplaycount
+        changeCredit(0)
+    }
+    window.SaveDataToImage = function() {
+        SlotCodeOutputer.save(stringifySaveData())
+    }
+    window.SaveData = function() {
+        if (gamemode != "normal" || isCT) {
+            return false;
+        }
+        var savedata = stringifySaveData()
+        localStorage.setItem("savedata", JSON.stringify(savedata))
+        return true;
+    }
+    window.LoadData = function() {
+        if (gamemode != "normal" || isCT) {
+            return false;
+        }
+        var savedata = localStorage.getItem("savedata")
+        try {
+            var data = JSON.parse(savedata)
+            parseSaveData(data)
+            changeCredit(0)
+        } catch (e) {
+            return false;
+        }
+        return true;
+    }
+    window.ClearData = function() {
+        coin = 0;
+        bonuscounter = {
+            count: {},
+            history: []
+        };
+        incoin = 0;
+        outcoin = 0;
+        playcount = 0;
+        allplaycount = 0;
+        SaveData();
+        changeCredit(0)
+    }
+    var setGamemode = function(mode) {
+        switch (mode) {
             case 'normal':
                 gamemode = 'normal'
-                slotmodule.setLotMode(0);
+                slotmodule.setLotMode(0)
                 slotmodule.setMaxbet(3);
                 isSBIG = false
                 break;
             case 'big':
                 gamemode = 'big';
-                slotmodule.setLotMode(1);
-                slotmodule.setMaxbet(3);
-                break;
-            case 'reg':
-                gamemode = 'reg';
-                slotmodule.setLotMode(2);
-                slotmodule.setMaxbet(1);
+                slotmodule.once("payend", function() {
+                });
+                slotmodule.setLotMode(1)
+                slotmodule.setMaxbet(2);
                 break;
             case 'jac':
                 gamemode = 'jac';
-                slotmodule.setLotMode(2);
+                slotmodule.once("payend", function() {
+                });
+                slotmodule.setLotMode(2)
                 slotmodule.setMaxbet(1);
                 break;
         }
     }
+    var segments = {
+        creditseg: segInit("#creditSegment", 2),
+        payseg: segInit("#paySegment", 2),
+        effectseg: segInit("#effectSegment", 4)
+    }
+    var credit = 50;
+    segments.creditseg.setSegments(50);
+    segments.creditseg.setOffColor(80, 30, 30);
+    segments.payseg.setOffColor(80, 30, 30);
+    segments.effectseg.setOffColor(5, 5, 5);
+    segments.creditseg.reset();
+    segments.payseg.reset();
+    segments.effectseg.reset();
+    var lotgame;
 
+    function changeCredit(delta) {
+        credit += delta;
+        if (credit < 0) {
+            credit = 0;
+        }
+        if (credit > 50) {
+            credit = 50;
+        }
+        $(".GameData").text("差枚数:" + coin + "枚  ゲーム数:" + playcount + "G  総ゲーム数:" + allplaycount + "G")
+        segments.creditseg.setSegments(credit)
+    }
+
+    function changeBonusSeg() {
+        var tmp = bonusdata.bonusget - bonusdata.geted
+        if (tmp < 0) {
+            tmp = 0;
+        }
+        segments.effectseg.setSegments("" + tmp);
+    }
+
+    function changeCTGameSeg() {
+        segments.effectseg.setOnColor(230, 0, 0);
+        segments.effectseg.setSegments(ctdata.ctgame);
+    }
+
+    function changeCTCoinSeg() {
+        segments.effectseg.setOnColor(50, 100, 50);
+        segments.effectseg.setSegments(200 + ctdata.ctstartcoin - coin);
+    }
+    var LampInterval = {
+        right: -1,
+        left: -1,
+        counter: {
+            right: true,
+            left: false
+        }
+    }
+
+    function setLamp(flags, timer) {
+        flags.forEach(function(f, i) {
+            if (!f) {
+                return
+            }
+            LampInterval[["left", "right"][i]] = setInterval(function() {
+                if (LampInterval.counter[["left", "right"][i]]) {
+                    $("#" + ["left", "right"][i] + "neko").css({
+                        filter: "brightness(200%)"
+                    })
+                } else {
+                    $("#" + ["left", "right"][i] + "neko").css({
+                        filter: "brightness(100%)"
+                    })
+                }
+                LampInterval.counter[["left", "right"][i]] = !LampInterval.counter[["left", "right"][i]];
+            }, timer)
+        })
+    }
+
+    function setLampBrightness(selector, parsent) {
+        $(selector).css({
+            filter: `brightness(${parsent}%)`
+        })
+    }
+
+    function setLampColor(selector, color) {
+        $(selector).attr({
+            src: `img/lamp/` + color + '.png'
+        })
+    }
+
+    function effect(lot) {
+        switch (gamemode) {
+            case 'normal':
+                var effectReserve = null;
+                switch (lot) {
+                    case 'はずれ':
+                        if (!rand(128)) {
+                            effectReserve = {
+                                color: null,
+                                sound: 'low'
+                            }
+                            if (!rand(4)) {
+                                effectReserve.sound = 'high'
+                            }
+                        }
+                        break
+                    case 'リプレイ':
+                        if (!rand(6)) {
+                            effectReserve = {
+                                color: 'blue',
+                                sound: 'low'
+                            }
+                            if (!rand(4)) {
+                                effectReserve.sound = 'high'
+                            }
+                        }
+                        if (bonusflag != "none") {
+                            if (rand(3)) {
+                                effectReserve = {
+                                    color: 'red',
+                                    sound: 'low'
+                                }
+                                if (!rand(2)) {
+                                    effectReserve.sound = 'high'
+                                }
+                            }
+                        }
+                        break
+                    case 'ベル':
+                        if (!rand(6)) {
+                            effectReserve = {
+                                color: 'yellow',
+                                sound: 'low'
+                            }
+                            if (!rand(4)) {
+                                effectReserve.sound = 'high'
+                            }
+                        }
+                        if (bonusflag != "none") {
+                            if (rand(3)) {
+                                effectReserve = {
+                                    color: 'green',
+                                    sound: 'low'
+                                }
+                                if (!rand(2)) {
+                                    effectReserve.sound = 'high'
+                                }
+                            }
+                        }
+                        break
+                    case 'スイカ':
+                        effectReserve = {
+                            color: 'green',
+                            sound: 'low'
+                        }
+                        if (!rand(4)) {
+                            effectReserve.sound = 'high'
+                        }
+                        break
+                    case 'チェリー':
+                        if (!rand(10)) {
+                            effectReserve = {
+                                color: 'red',
+                                sound: 'low'
+                            }
+                            if (!rand(64)) {
+                                effectReserve.sound = 'high'
+                            }
+                        }
+                        if (bonusflag != "none" && rand(2)) {
+                            effectReserve = {
+                                color: 'red',
+                                sound: ['low', 'high'][rand(2)]
+                            }
+                        }
+                        break
+                    case 'BIG1':
+                        if (!rand(3)) {
+                            effectReserve = {
+                                color: null,
+                                sound: 'low'
+                            }
+                            if (!rand(3)) {
+                                effectReserve.sound = 'high'
+                            }
+                        }
+                        break;
+                    case 'BIG2':
+                        if (rand(3)) {
+                            var efTable = [10, 10, 0, 0, 10, 15, 25, 30, 0, 0]
+                            var r = rand(100);
+                            var e = efTable.findIndex(f => {
+                                r -= f;
+                                return r < 0
+                            });
+                            effectReserve = {
+                                color: [null, 'blue', 'yellow', 'green', 'red'][parseInt(e / 2)],
+                                sound: ['low', 'high'][e % 2]
+                            }
+                        }
+                        break;
+                    case 'BIG3':
+                        if (rand(3)) {
+                            var efTable = [10, 10, 0, 0, 25, 30, 10, 15, 0, 0]
+                            var r = rand(100);
+                            var e = efTable.findIndex(f => {
+                                r -= f;
+                                return r < 0
+                            });
+                            effectReserve = {
+                                color: [null, 'blue', 'yellow', 'green', 'red'][parseInt(e / 2)],
+                                sound: ['low', 'high'][e % 2]
+                            }
+                        }
+                        break
+                    case 'BIG4':
+                        if (rand(3)) {
+                            var efTable = [10, 10, 10, 30, 0, 0, 0, 0, 10, 30]
+                            var r = rand(100);
+                            var e = efTable.findIndex(f => {
+                                r -= f;
+                                return r < 0
+                            });
+                            effectReserve = {
+                                color: [null, 'blue', 'yellow', 'green', 'red'][parseInt(e / 2)],
+                                sound: ['low', 'high'][e % 2]
+                            }
+                        }
+                        break
+                }
+                if (effectReserve) {
+                    sounder.playSound('yokoku_' + effectReserve.sound);
+                    var img = effectReserve.color;
+                    if (!img) {
+                        setLampColor('#moon', 'moon');
+                    } else {
+                        setLampColor('#moon', 'moon_' + img);
+                    }
+                    slotmodule.once('allreelstop', () => {
+                        setLampColor('#moon', 'moon');
+                    })
+                }
+                break
+            case 'big':
+            case 'jac':
+                if (sbig) {
+                    sounder.playSound('nabi')
+                    for (var i = 1; i <= 3; i++) {
+                        if (i == lot.slice(-1)) {
+                            setLampBrightness('#nabi' + i, 100)
+                        } else {
+                            setLampBrightness('#nabi' + i, 20)
+                        }
+                    }
+                    slotmodule.once('bet', () => {
+                        for (var i = 1; i <= 3; i++) {
+                            setLampBrightness('#nabi' + i, 20)
+                        }
+                    })
+                }
+                break
+        }
+    }
+    $(window).bind("unload", function() {
+        SaveData();
+    });
+    LoadData();
+    setInterval(function lanpAnimation() {
+        switch (hyperzone) {
+            case 0:
+                setLampBrightness('#fire', 20);
+                break
+            case 1:
+                setLampBrightness('#fire', rand(20, 40));
+                break
+            case 2:
+                setLampBrightness('#fire', rand(20, 60));
+                break
+            case 3:
+                setLampBrightness('#fire', rand(20, 80));
+                break
+        }
+    }, 500)
 }
 
-function rand(m) {
-    return Math.floor(Math.random() * m);
+function and() {
+    return Array.prototype.slice.call(arguments).every(function(f) {
+        return f
+    })
+}
+
+function or() {
+    return Array.prototype.slice.call(arguments).some(function(f) {
+        return f
+    })
+}
+
+function rand(m, n = 0) {
+    return Math.floor(Math.random() * m) + n;
 }
 
 function replaceMatrix(base, matrix, front, back) {
     var out = JSON.parse(JSON.stringify(base));
-    matrix.forEach(function (m, i) {
-        m.forEach(function (g, j) {
+    matrix.forEach(function(m, i) {
+        m.forEach(function(g, j) {
             if (g == 1) {
                 front && (out.front[i][j] = front);
                 back && (out.back[i][j] = back);
@@ -403,9 +921,18 @@ function replaceMatrix(base, matrix, front, back) {
 
 function flipMatrix(base) {
     var out = JSON.parse(JSON.stringify(base));
-    return out.map(function (m) {
-        return m.map(function (p) {
+    return out.map(function(m) {
+        return m.map(function(p) {
             return 1 - p;
         })
     })
+}
+
+function segInit(selector, size) {
+    var cangvas = $(selector)[0];
+    var sc = new SegmentControler(cangvas, size, 0, -3, 50, 30);
+    sc.setOffColor(120, 120, 120)
+    sc.setOnColor(230, 0, 0)
+    sc.reset();
+    return sc;
 }

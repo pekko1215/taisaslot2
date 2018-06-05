@@ -9,20 +9,46 @@ function Sounder(filesObj) {
     this.firstLoad = false;
     this.sources = [];
     this.loops = [];
-}
+    this.nodeGains = {};
+    this.volumedata = {};
 
-Sounder.prototype.addFile = function (file, tag) {
-    this.soundFilesObj.unload.push({
-        filename: file,
-        tag: tag
-    });
-}
-
-Sounder.prototype.loadFile = function (callback) {
     var AudioContext = window.AudioContext // Default
         || window.webkitAudioContext // Safari and old versions of Chrome
         || false;
     this.context = new AudioContext();
+}
+Sounder.prototype.addFile = function (file, tag) {
+    var that = this
+    this.soundFilesObj.unload.push({
+        filename: file,
+        tag: [tag],
+        addTag:function(tag){
+            this.tag.push(tag);
+            return this;
+        },
+        setVolume:function(volume){
+            that.setVolume(this.tag[0],volume);
+        }
+    });
+    return this.soundFilesObj.unload[this.soundFilesObj.unload.length-1];
+}
+
+Sounder.prototype.setVolume = function(tag,volume){
+    var that = this;
+    that.volumedata[tag] = volume;
+}
+
+Sounder.prototype.loadFile = function (callback) {
+
+    this.compressor = this.context.createDynamicsCompressor();
+
+    this.compressor.threshold.value = -50;
+    this.compressor.knee.value = 40;
+    this.compressor.ratio.value = 12;
+    this.compressor.reduction.value = -20;
+    this.compressor.attack.value = 0;
+    this.compressor.release.value = 0.25;
+
     var context = this.context;
     var soundFilesObj = this.soundFilesObj;
     var that = this;
@@ -60,47 +86,72 @@ Sounder.prototype.playSound = function (tag, loop, callback, loopstart, loopend)
     if (!this.firstLoad) {
         console.log("loadFile ga zikkou sarete naiyo")
     }
-    var source = this.context.createBufferSource();
-    var f = this.soundFilesObj.loaded.find(function (f) {
-        return f.tag == tag;
+    var arr = this.soundFilesObj.loaded.filter(function (f) {
+        return f.tag.indexOf(tag)!=-1;
     })
-    if (!f) {
+    if (arr.length==0) {
         return false;
     }
-    source.buffer = f.buffer;
-    source.loop = loop;
-    if (loop) {
-        source.loopStart = loopstart || 0;
-        source.loopEnd = loopend || f.buffer.duration;
-        this.loops.push({tag: tag, source: source})
-    } else {
+    var that = this;
+    arr.forEach(function (f) {
+        var source = that.context.createBufferSource();
+        source.buffer = f.buffer;
+        source.loop = loop;
+        if (loop) {
+            source.loopStart = loopstart || 0;
+            source.loopEnd = loopend || f.buffer.duration;
+            that.loops.push({tag: f.tag, source: source})
+        } else {
+            setTimeout(callback, f.buffer.duration * 1000);
+        }
+        var volume = 1;
+        var base = source;
+        if(!that.nodeGains[f.tag[0]]){
+            that.nodeGains[f.tag[0]] = that.context.createGain()
+        }
+        f.tag.forEach(function(tag){
+            if(that.volumedata[tag]===undefined){
+                that.volumedata[tag] = 1;
+            }
+            volume *= that.volumedata[tag];
+        })
+        that.nodeGains[f.tag[0]].gain.value = volume;
 
-        setTimeout(callback, f.buffer.duration * 1000);
-    }
-    // source.onended = function () {
-    //     source.disconnect();
-    //     callback && callback();
-    // }
-    source.connect(this.context.destination);
-    source.start()
-    //$("#test").text($("#test").text() + "\n" + JSON.stringify(source.context.state))
+        base.connect(that.nodeGains[f.tag[0]]);
+        that.nodeGains[f.tag[0]].connect(that.compressor);
+
+        that.compressor.connect(that.context.destination);
+        source.start()
+    });
+
     return true;
 }
 
+
+
 Sounder.prototype.stopSound = function (tag) {
 
-    var f = this.loops.findIndex(function (f) {
-        return f.tag == tag;
+    var choiceArray = [];
+    this.loops.forEach(function (f,i) {
+        if(f.tag.indexOf(tag)!=-1){
+            choiceArray.push(i)
+        }
     })
-    if (f!=-1) {
+    if (choiceArray.length==0) {
         return false;
     }
-    try {
-        this.loops[f].stop();
-    }catch(e){
-        return false;
-    }
-    loops.splice(f,1);
+    var that = this;
+    choiceArray.forEach(function(f){
+        try {
+            that.loops[f].source.stop();
+        }catch(e){
+            return false;
+        }
+    })
+
+    this.loops = this.loops.filter(function(f,i){
+        return choiceArray.indexOf(i)==-1
+    });
 
     return true;
 }

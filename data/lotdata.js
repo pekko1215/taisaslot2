@@ -8,14 +8,14 @@ var lotdata = {
             value:1/7.7},
         {   name:"ベル",
             value:1/15},
-        {   name:"スイカ",
+        {   name:"オレンジ",
             value:1/64},
         {   name:"チェリー",
             value:1/32},
         {   name:"BIG",
-            value:1/86},
+            value:1/286},
         {   name:"REG",
-            value:1/64}
+            value:1/286}
     ],
     "big":[
         {
